@@ -2,10 +2,11 @@ openapi: 3.0.3
 info:
   title: Ping API
   version: 1.0.0
+servers:
+  - url: 'http://localhost:8000'
 paths:
   /ping:
     get:
-      summary: Vérifie si l'API fonctionne
       responses:
         '200':
           description: Réponse OK
