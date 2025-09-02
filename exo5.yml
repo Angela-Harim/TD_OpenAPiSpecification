@@ -1,0 +1,198 @@
+openapi: 3.0.3
+info:
+  title: Product & Order API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8000'
+
+tags:
+  - name: Products
+    description: Opérations liées aux produits
+  - name: Orders
+    description: Opérations liées aux commandes
+
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Recherche de produits
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/q'
+      responses:
+        '200':
+          description: Liste des produits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+              examples:
+                multipleProducts:
+                  summary: Plusieurs produits trouvés
+                  value:
+                    - name: Lait
+                      expiration_datetime: '2025-09-30T12:00:00Z'
+                      price: 1.5
+                    - name: Pain
+                      expiration_datetime: '2025-09-25T12:00:00Z'
+                      price: 0.8
+                emptyList:
+                  summary: Aucun produit trouvé
+                  value: []
+
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Liste paginée des commandes
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+      responses:
+        '200':
+          description: Liste des commandes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+              examples:
+                multipleOrders:
+                  summary: Plusieurs commandes trouvées
+                  value:
+                    - identifier: 101
+                      customer_name: Alice
+                      creation_datetime: '2025-09-01T10:00:00Z'
+                      total_amount: 50.75
+                    - identifier: 102
+                      customer_name: Bob
+                      creation_datetime: '2025-09-02T14:30:00Z'
+                      total_amount: 120.00
+                emptyList:
+                  summary: Aucune commande trouvée
+                  value: []
+
+    post:
+      tags:
+        - Orders
+      summary: Crée une nouvelle commande (protégé par Basic Auth)
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+            examples:
+              createOrder:
+                summary: Exemple de création de commande
+                value:
+                  identifier: 103
+                  customer_name: Charlie
+                  creation_datetime: '2025-09-02T16:00:00Z'
+                  total_amount: 75.50
+      responses:
+        '201':
+          description: Commande créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                createdOrder:
+                  summary: Exemple de commande créée
+                  value:
+                    identifier: 103
+                    customer_name: Charlie
+                    creation_datetime: '2025-09-02T16:00:00Z'
+                    total_amount: 75.50
+        '401':
+          description: Authentification requise ou invalide
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Lait
+        expiration_datetime:
+          type: string
+          format: date-time
+          example: '2025-09-30T12:00:00Z'
+        price:
+          type: number
+          format: float
+          example: 1.5
+      required:
+        - name
+        - expiration_datetime
+        - price
+
+    Order:
+      type: object
+      properties:
+        identifier:
+          type: integer
+          example: 101
+        customer_name:
+          type: string
+          example: Alice
+        creation_datetime:
+          type: string
+          format: date-time
+          example: '2025-09-01T10:00:00Z'
+        total_amount:
+          type: number
+          format: float
+          example: 50.75
+      required:
+        - identifier
+        - customer_name
+        - creation_datetime
+        - total_amount
+
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: Nombre maximum d’éléments à retourner
+      required: false
+      schema:
+        type: integer
+        example: 10
+    q:
+      name: q
+      in: query
+      description: Terme de recherche pour filtrer les produits
+      required: false
+      schema:
+        type: string
+        example: Lait
+    page:
+      name: page
+      in: query
+      description: Numéro de page
+      required: false
+      schema:
+        type: integer
+        example: 1
+    size:
+      name: size
+      in: query
+      description: Nombre d’éléments par page
+      required: false
+      schema:
+        type: integer
+        example: 20
+
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
