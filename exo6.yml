@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: UserProfile API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8000'
+
+tags:
+  - name: Users
+    description: Gestion des profils utilisateurs
+
+paths:
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Liste de tous les utilisateurs
+      responses:
+        '200':
+          description: Liste des profils utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfile'
+              examples:
+                multipleUsers:
+                  summary: Plusieurs utilisateurs
+                  value:
+                    - identifier: "u001"
+                      first_name: Alice
+                      last_name: Dupont
+                      birthdate: "1990-05-12"
+                      email: alice@example.com
+                      address_street: "12 rue A"
+                      address_city: "Antananarivo"
+                      address_country: "Madagascar"
+                      address_postal_code: 101
+                      needs_newsletter: true
+                      language: fr
+                    - identifier: "u002"
+                      first_name: Bob
+                      last_name: Martin
+                      birthdate: "1985-08-30"
+                      email: bob@example.com
+                      address_street: "45 rue B"
+                      address_city: "Fianarantsoa"
+                      address_country: "Madagascar"
+                      address_postal_code: 301
+                      needs_newsletter: false
+                      language: mg
+    post:
+      tags:
+        - Users
+      summary: Crée un nouvel utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserProfile'
+            examples:
+              newUser:
+                summary: Création d’un utilisateur
+                value:
+                  first_name: Charlie
+                  last_name: Rakoto
+                  birthdate: "1992-03-15"
+                  email: charlie@example.com
+                  address_street: "78 rue C"
+                  address_city: "Toamasina"
+                  address_country: "Madagascar"
+                  address_postal_code: 501
+                  needs_newsletter: true
+                  language: eng
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /users/{id}/email:
+    put:
+      tags:
+        - Users
+      summary: Met à jour l’email d’un utilisateur
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: nouveau@example.com
+              required:
+                - email
+      responses:
+        '200':
+          description: Email mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found
+
+components:
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "u001"
+
+  schemas:
+    UserProfile:
+      allOf:
+        - $ref: '#/components/schemas/CreateUserProfile'
+        - type: object
+          properties:
+            identifier:
+              type: string
+              example: "u001"
+          required:
+            - identifier
+
+    CreateUserProfile:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: Alice
+        last_name:
+          type: string
+          example: Dupont
+        birthdate:
+          type: string
+          format: date
+          example: "1990-05-12"
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        address_street:
+          type: string
+          example: "12 rue A"
+        address_city:
+          type: string
+          example: Antananarivo
+        address_country:
+          type: string
+          example: Madagascar
+        address_postal_code:
+          type: integer
+          example: 101
+        needs_newsletter:
+          type: boolean
+          example: true
+        language:
+          type: string
+          enum:
+            - mg
+            - fr
+            - eng
+          example: fr
+      required:
+        - first_name
+        - last_name
+        - birthdate
+        - email
+        - address_street
+        - address_city
+        - address_country
+        - address_postal_code
+        - needs_newsletter
+        - language
